@@ -1,0 +1,186 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile data including role and preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "doctor", "nurse", "patient"] },
+        "phoneNumber": { "type": "string" },
+        "bio": { "type": "string" },
+        "language": { "type": "string", "enum": ["en", "id", "ms", "ar", "vi"] },
+        "photoURL": { "type": "string", "format": "uri" },
+        "primaryDoctorId": { "type": "string" },
+        "primaryDoctorName": { "type": "string" },
+        "title": { "type": "string" },
+        "qualifications": { "type": "string" },
+        "specialization": { "type": "string" },
+        "licenseNumber": { "type": "string" },
+        "experienceYears": { "type": "number" },
+        "affiliations": { "type": "string" },
+        "languages": { "type": "array", "items": { "type": "string" } },
+        "workingHours": { "type": "string" },
+        "clinicAddress": { "type": "string" },
+        "consultationFee": { "type": "number" },
+        "specialServices": { "type": "string" },
+        "acceptedInsurance": { "type": "string" },
+        "communicationOptions": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "Booking appointment details",
+      "type": "object",
+      "properties": {
+        "patientId": { "type": "string" },
+        "patientName": { "type": "string" },
+        "doctorId": { "type": "string" },
+        "doctorName": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "declined", "completed"] },
+        "queueNumber": { "type": "integer" },
+        "reason": { "type": "string" },
+        "type": { "type": "string", "enum": ["consultation", "lab"] },
+        "labService": { "type": "string" },
+        "doctorNotes": { "type": "string" },
+        "feedback": { "type": "string" },
+        "approvedBy": { "type": "string" },
+        "approvedByName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientId", "date", "time", "status", "type"]
+    },
+    "NutritionIntake": {
+      "title": "Nutrition Intake",
+      "description": "Daily food intake record for patients",
+      "type": "object",
+      "properties": {
+        "patientId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "foodName": { "type": "string" },
+        "calories": { "type": "number" },
+        "protein": { "type": "number" },
+        "carbs": { "type": "number" },
+        "fats": { "type": "number" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientId", "date", "foodName"]
+    },
+    "ClinicalNote": {
+      "title": "Clinical Note",
+      "description": "Clinical documentation generated from audio",
+      "type": "object",
+      "properties": {
+        "patientId": { "type": "string" },
+        "doctorId": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "audioUrl": { "type": "string", "format": "uri" },
+        "transcription": { "type": "string" },
+        "soapNotes": {
+          "type": "object",
+          "properties": {
+            "subjective": { "type": "string" },
+            "objective": { "type": "string" },
+            "assessment": { "type": "string" },
+            "plan": { "type": "string" }
+          }
+        },
+        "structuredInfo": {
+          "type": "object",
+          "properties": {
+            "symptoms": { "type": "array", "items": { "type": "string" } },
+            "findings": { "type": "array", "items": { "type": "string" } },
+            "diagnosis": { "type": "string" },
+            "treatment": { "type": "string" }
+          }
+        },
+        "clinicalChecklist": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientId", "doctorId", "date"]
+    },
+    "PregnancySession": {
+      "title": "Pregnancy Session",
+      "description": "A tracked pregnancy session for a patient",
+      "type": "object",
+      "properties": {
+        "patientId": { "type": "string" },
+        "patientName": { "type": "string" },
+        "lmp": { "type": "string", "format": "date" },
+        "edd": { "type": "string", "format": "date" },
+        "initialGestationWeeks": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "completed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientId", "lmp", "edd", "status"]
+    },
+    "PregnancyRecord": {
+      "title": "Pregnancy Record",
+      "description": "A medical record within a pregnancy session",
+      "type": "object",
+      "properties": {
+        "sessionId": { "type": "string" },
+        "patientId": { "type": "string" },
+        "doctorId": { "type": "string" },
+        "doctorName": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "weight": { "type": "number" },
+        "bloodPressure": { "type": "string" },
+        "fundalHeight": { "type": "number" },
+        "fetalHeartRate": { "type": "number" },
+        "notes": { "type": "string" },
+        "medicalAdvice": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["sessionId", "patientId", "doctorId", "date"]
+    },
+    "PreviousPregnancy": {
+      "title": "Previous Pregnancy",
+      "description": "Historical pregnancy data",
+      "type": "object",
+      "properties": {
+        "patientId": { "type": "string" },
+        "year": { "type": "string" },
+        "outcome": { "type": "string", "enum": ["healthy", "abortion", "stillbirth", "miscarriage", "other"] },
+        "gestationWeeks": { "type": "number" },
+        "deliveryType": { "type": "string" },
+        "complications": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientId", "year", "outcome"]
+    },
+    "PreviousPregnancyMedicalRecord": {
+      "title": "Previous Pregnancy Medical Record",
+      "description": "Medical records for a historical pregnancy",
+      "type": "object",
+      "properties": {
+        "previousPregnancyId": { "type": "string" },
+        "patientId": { "type": "string" },
+        "type": { "type": "string", "enum": ["immunization", "medicine", "other"] },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["previousPregnancyId", "patientId", "type", "description", "date"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": { "schema": "User", "description": "User profiles" },
+    "/appointments/{appointmentId}": { "schema": "Appointment", "description": "Appointments" },
+    "/nutrition/{intakeId}": { "schema": "NutritionIntake", "description": "Nutrition records" },
+    "/clinicalNotes/{noteId}": { "schema": "ClinicalNote", "description": "Clinical documentation" },
+    "/pregnancySessions/{sessionId}": { "schema": "PregnancySession", "description": "Pregnancy sessions" },
+    "/pregnancyRecords/{recordId}": { "schema": "PregnancyRecord", "description": "Pregnancy medical records" },
+    "/previousPregnancies/{pregnancyId}": { "schema": "PreviousPregnancy", "description": "Historical pregnancy data" },
+    "/previousPregnancyRecords/{recordId}": { "schema": "PreviousPregnancyMedicalRecord", "description": "Medical records for historical pregnancies" }
+  }
+}

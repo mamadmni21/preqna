@@ -1,0 +1,5 @@
+{
+  "name": "LapaqPregna",
+  "description": "A comprehensive OB-GYN management platform with AI-powered clinical documentation, role-based dashboards, appointment booking, and nutrition tracking.",
+  "requestFramePermissions": ["microphone"]
+}
