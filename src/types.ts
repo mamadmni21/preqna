@@ -144,3 +144,14 @@ export interface NutritionIntake {
   notes?: string;
   createdAt: string;
 }
+
+export interface ConsultationMessage {
+  id: string;
+  consultationId: string;
+  senderId: string;
+  senderName: string;
+  receiverId: string;
+  text: string;
+  type: 'text' | 'audio';
+  createdAt: string;
+}

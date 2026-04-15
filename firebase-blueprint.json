@@ -171,6 +171,22 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["previousPregnancyId", "patientId", "type", "description", "date"]
+    },
+    "ConsultationMessage": {
+      "title": "Consultation Message",
+      "description": "A message in a consultation session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "consultationId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "text": { "type": "string" },
+        "type": { "type": "string", "enum": ["text", "audio"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["consultationId", "senderId", "receiverId", "text", "type", "createdAt"]
     }
   },
   "firestore": {
@@ -181,6 +197,7 @@
     "/pregnancySessions/{sessionId}": { "schema": "PregnancySession", "description": "Pregnancy sessions" },
     "/pregnancyRecords/{recordId}": { "schema": "PregnancyRecord", "description": "Pregnancy medical records" },
     "/previousPregnancies/{pregnancyId}": { "schema": "PreviousPregnancy", "description": "Historical pregnancy data" },
-    "/previousPregnancyRecords/{recordId}": { "schema": "PreviousPregnancyMedicalRecord", "description": "Medical records for historical pregnancies" }
+    "/previousPregnancyRecords/{recordId}": { "schema": "PreviousPregnancyMedicalRecord", "description": "Medical records for historical pregnancies" },
+    "/consultations/{consultationId}/messages/{messageId}": { "schema": "ConsultationMessage", "description": "Consultation messages" }
   }
 }

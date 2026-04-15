@@ -45,6 +45,27 @@ export const transcribeClinicalAudio = async (base64Audio: string, mimeType: str
   }
 };
 
+export const transcribeSimpleAudio = async (base64Audio: string, mimeType: string) => {
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const prompt = "Transcribe this audio recording accurately. Return only the transcription text.";
+  try {
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          mimeType: mimeType,
+          data: base64Audio,
+        },
+      },
+    ]);
+    const response = await result.response;
+    return response.text().trim();
+  } catch (error) {
+    console.error("Error transcribing audio:", error);
+    return null;
+  }
+};
+
 export const extractClinicalInfo = async (text: string) => {
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 

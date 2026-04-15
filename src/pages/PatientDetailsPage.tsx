@@ -11,7 +11,7 @@ import {
   Stethoscope, Pill, Thermometer
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { extractClinicalInfo } from '../services/geminiService';
+import { extractClinicalInfo } from '../services/qwenService';
 
 const PatientDetailsPage = ({ profile }: { profile: UserProfile }) => {
   const { id } = useParams<{ id: string }>();

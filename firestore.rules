@@ -17,6 +17,9 @@ service cloud.firestore {
     // Collection: clinicalNotes
     // Fields: patientId, doctorId, date, audioUrl, transcription, soapNotes, clinicalChecklist, createdAt
     //
+    // Collection: consultations/{consultationId}/messages
+    // Fields: consultationId, senderId, senderName, receiverId, text, type, createdAt
+    //
     // ===============================================================
 
     // ===============================================================
@@ -106,6 +109,15 @@ service cloud.firestore {
              data.type in ['immunization', 'medicine', 'other'];
     }
 
+    function isValidConsultationMessage(data) {
+      return data.keys().hasAll(['consultationId', 'senderId', 'receiverId', 'text', 'type', 'createdAt']) &&
+             data.consultationId is string &&
+             data.senderId is string &&
+             data.receiverId is string &&
+             data.text is string &&
+             data.type in ['text', 'audio'];
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -181,6 +193,12 @@ service cloud.firestore {
       allow update: if isAuthenticated() && isValidPreviousPregnancyRecord(request.resource.data) && 
                     (isOwner(resource.data.patientId) || isStaff());
       allow delete: if isAdmin();
+    }
+
+    match /consultations/{consultationId}/messages/{messageId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.senderId) || isOwner(resource.data.receiverId));
+      allow create: if isAuthenticated() && isValidConsultationMessage(request.resource.data) && 
+                    isOwner(request.resource.data.senderId);
     }
   }
 }

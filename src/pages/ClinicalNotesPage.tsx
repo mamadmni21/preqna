@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Mic, X, Activity, MessageSquare, Check, Settings, Users, Clock, Utensils } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { transcribeClinicalAudio } from '../services/geminiService';
+import { transcribeClinicalAudio } from '../services/qwenService';
 
 const Loading = () => (
   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

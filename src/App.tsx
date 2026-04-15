@@ -28,6 +28,7 @@ import IntegrationsPage from './pages/IntegrationsPage';
 import PregnancyPage from './pages/PregnancyPage';
 import AppointmentDetailsPage from './pages/AppointmentDetailsPage';
 import PatientDetailsPage from './pages/PatientDetailsPage';
+import ConsultationPage from './pages/ConsultationPage';
 
 // --- Components ---
 
@@ -53,6 +54,7 @@ const Navbar = ({ user, profile }: { user: any, profile: UserProfile | null }) =
     { code: 'ms', name: t('malaysia') },
     { code: 'ar', name: t('arabic') },
     { code: 'vi', name: t('vietnamese') },
+    { code: 'fr', name: t('french') },
   ];
 
   const isHome = location.pathname === '/';
@@ -263,6 +265,7 @@ export default function App() {
                 <Route path="/pregnancy" element={profile ? <PregnancyPage profile={profile} /> : <Navigate to="/login" />} />
                 <Route path="/appointment/:id" element={profile ? <AppointmentDetailsPage profile={profile} /> : <Navigate to="/login" />} />
                 <Route path="/patient/:id" element={profile ? <PatientDetailsPage profile={profile} /> : <Navigate to="/login" />} />
+                <Route path="/consultation" element={profile ? <ConsultationPage profile={profile} /> : <Navigate to="/login" />} />
                 <Route path="/profile" element={profile ? <ProfilePage profile={profile} setProfile={setProfile} /> : <Navigate to="/login" />} />
                 <Route path="/integrations" element={<IntegrationsPage />} />
                 <Route path="*" element={<Navigate to="/" />} />

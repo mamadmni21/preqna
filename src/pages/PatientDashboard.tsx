@@ -4,7 +4,7 @@ import { db } from '../firebase';
 import { UserProfile, Appointment } from '../types';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Check, Plus, Utensils, ExternalLink, LogOut, Baby } from 'lucide-react';
+import { Calendar, Clock, Check, Plus, Utensils, ExternalLink, LogOut, Baby, MessageSquare } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 
@@ -35,7 +35,7 @@ const PatientDashboard = ({ profile }: { profile: UserProfile }) => {
     <div className="p-4 md:p-8 max-w-7xl mx-auto pb-24 md:pb-8">
       <header className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-slate-900">{t('welcome')}, {profile.displayName}!</h1>
-        <p className="text-slate-500 mt-1">Your pregnancy journey dashboard.</p>
+        <p className="text-slate-500 mt-1">{t('welcomeMessage')}</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -52,11 +52,11 @@ const PatientDashboard = ({ profile }: { profile: UserProfile }) => {
           <h2 className="text-4xl font-bold mt-2 text-slate-900">{stats.completed}</h2>
           <p className="mt-4 text-sm text-green-500 flex items-center gap-1">
             <Check size={16} />
-            <span>Health records up to date</span>
+            <span>{t('healthRecordsUpToDate')}</span>
           </p>
         </div>
         <div className="card">
-          <p className="text-slate-400 font-medium uppercase tracking-wider text-xs">Patient ID</p>
+          <p className="text-slate-400 font-medium uppercase tracking-wider text-xs">{t('patientId')}</p>
           <h2 className="text-xl font-bold mt-2 text-slate-900 truncate">{profile.uid.slice(0, 12)}...</h2>
           <p className="mt-4 text-sm text-slate-500">{profile.email}</p>
         </div>
@@ -66,14 +66,14 @@ const PatientDashboard = ({ profile }: { profile: UserProfile }) => {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold text-slate-900">{t('appointments')}</h3>
-            <Link to="/history" className="text-brand-primary text-sm font-semibold hover:underline">View all</Link>
+            <Link to="/history" className="text-brand-primary text-sm font-semibold hover:underline">{t('viewAll')}</Link>
           </div>
           <div className="space-y-4">
             {appointments.length === 0 ? (
               <div className="card text-center py-12">
                 <Calendar className="mx-auto text-slate-200 mb-4" size={48} />
-                <p className="text-slate-500">No appointments found</p>
-                <Link to="/booking" className="btn-primary mt-4 inline-block">Book Now</Link>
+                <p className="text-slate-500">{t('noAppointments')}</p>
+                <Link to="/booking" className="btn-primary mt-4 inline-block">{t('bookNow')}</Link>
               </div>
             ) : (
               appointments.slice(0, 5).map((apt) => (
@@ -91,7 +91,7 @@ const PatientDashboard = ({ profile }: { profile: UserProfile }) => {
                         <p className="font-bold text-slate-900">{apt.doctorName}</p>
                         {apt.queueNumber && (
                           <span className="bg-brand-primary/10 text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded uppercase">
-                            Queue #{apt.queueNumber}
+                            {t('queue')} #{apt.queueNumber}
                           </span>
                         )}
                       </div>
@@ -114,13 +114,19 @@ const PatientDashboard = ({ profile }: { profile: UserProfile }) => {
         </section>
 
         <section>
-          <h3 className="text-xl font-bold text-slate-900 mb-4">Pregnancy Menu</h3>
+          <h3 className="text-xl font-bold text-slate-900 mb-4">{t('pregnancyMenu')}</h3>
           <div className="grid grid-cols-2 gap-4">
             <Link to="/pregnancy" className="card hover:border-brand-primary transition-colors flex flex-col items-center justify-center gap-3 py-8">
               <div className="w-12 h-12 bg-brand-bg rounded-full flex items-center justify-center text-brand-primary">
                 <Baby size={24} />
               </div>
-              <span className="font-bold text-slate-700">Pregnancy</span>
+              <span className="font-bold text-slate-700">{t('pregnancy')}</span>
+            </Link>
+            <Link to="/consultation" className="card hover:border-brand-primary transition-colors flex flex-col items-center justify-center gap-3 py-8">
+              <div className="w-12 h-12 bg-brand-bg rounded-full flex items-center justify-center text-brand-primary">
+                <MessageSquare size={24} />
+              </div>
+              <span className="font-bold text-slate-700">{t('consultation')}</span>
             </Link>
             <Link to="/booking" className="card hover:border-brand-primary transition-colors flex flex-col items-center justify-center gap-3 py-8">
               <div className="w-12 h-12 bg-brand-bg rounded-full flex items-center justify-center text-brand-primary">
