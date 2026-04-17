@@ -1,5 +1,5 @@
 {
-  "name": "LapaqPregna",
-  "description": "A comprehensive OB-GYN management platform with AI-powered clinical documentation, role-based dashboards, appointment booking, and nutrition tracking.",
+  "name": "Qwen Medical AI Demo (LapaqPregna)",
+  "description": "An AI-powered OB-GYN platform featuring Qwen-driven clinical analysis, automated documentation, and patient management.",
   "requestFramePermissions": ["microphone"]
 }

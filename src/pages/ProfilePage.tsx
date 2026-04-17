@@ -23,8 +23,8 @@ const ProfilePage = ({ profile, setProfile }: { profile: UserProfile, setProfile
     profession: profile.profession || '',
     workLevel: profile.workLevel || '',
     incomeRange: profile.incomeRange || '',
-    weight: profile.weight,
-    height: profile.height,
+    weight: profile.weight ?? null,
+    height: profile.height ?? null,
     bloodType: profile.bloodType || '',
     immunizationRecord: profile.immunizationRecord || '',
     familyHistory: profile.familyHistory || '',
@@ -34,11 +34,11 @@ const ProfilePage = ({ profile, setProfile }: { profile: UserProfile, setProfile
     qualifications: profile.qualifications || '',
     specialization: profile.specialization || '',
     licenseNumber: profile.licenseNumber || '',
-    experienceYears: profile.experienceYears,
+    experienceYears: profile.experienceYears ?? null,
     affiliations: profile.affiliations || '',
     workingHours: profile.workingHours || '',
     clinicAddress: profile.clinicAddress || '',
-    consultationFee: profile.consultationFee,
+    consultationFee: profile.consultationFee ?? null,
     specialServices: profile.specialServices || '',
     acceptedInsurance: profile.acceptedInsurance || '',
     communicationOptions: profile.communicationOptions || '',
@@ -78,7 +78,7 @@ const ProfilePage = ({ profile, setProfile }: { profile: UserProfile, setProfile
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: (name === 'weight' || name === 'height' || name === 'experienceYears' || name === 'consultationFee') ? (value ? Number(value) : undefined) : value
+      [name]: (name === 'weight' || name === 'height' || name === 'experienceYears' || name === 'consultationFee') ? (value ? Number(value) : null) : value
     }));
   };
 
