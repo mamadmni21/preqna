@@ -80,6 +80,9 @@ This project is containerized using Docker and deployed via Alibaba Cloud's ecos
 
 ## 📄 License & Credits
 
-Developed by **Ainul** for the **Alibaba Cloud Qwen AI Hackathon 2024**.
+Developed for the **Alibaba Cloud Qwen AI Hackathon 2024** by:
+- **Ainol**: Product Vision & Hackathon Idea
+- **Mamad**: Software Developer & Cloud Architecture
+- **Rini**: Research & Content Wireframe
 
 *Disclaimer: This is a hackathon prototype. Clinical decisions should always be verified by certified medical professionals.*
