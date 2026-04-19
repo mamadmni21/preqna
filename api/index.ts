@@ -10,9 +10,9 @@ app.use(express.json({ limit: '50mb' }));
 // Improved key discovery logic
 const getDashscopeKey = () => {
   let key = process.env.DASHSCOPE_API_KEY || process.env.VITE_DASHSCOPE_API_KEY || '';
-  // Aggressive cleaning for Vercel/Cloud environments
+  // Maximum sanitization: Keep ONLY printable ASCII, remove quotes and prefixes
   key = key.trim();
-  if (key === 'undefined' || key === 'null') return '';
+  key = key.replace(/[^\x21-\x7E]/g, ''); // Remove all non-printable/whitespace-like ASCII
   key = key.replace(/^["']|["']$/g, ''); // Remove outer quotes
   key = key.replace(/^Bearer\s+/i, ''); // Remove accidental Bearer prefix
   return key.trim();
@@ -21,14 +21,22 @@ const getDashscopeKey = () => {
 // Helper to make dashscope calls
 const callDashscope = async (endpoint: string, data: any) => {
   const key = getDashscopeKey();
-  // Send BOTH header styles to bypass potential proxy stripping
-  return axios.post(`https://dashscope.aliyuncs.com/api/v1${endpoint}`, data, {
-    headers: {
-      'Authorization': `Bearer ${key}`,
-      'X-DashScope-ApiKey': key,
-      'Content-Type': 'application/json'
+  try {
+    const response = await axios.post(`https://dashscope.aliyuncs.com/api/v1${endpoint}`, data, {
+      headers: {
+        'X-DashScope-ApiKey': key,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response;
+  } catch (error: any) {
+    if (error.response) {
+      console.error(`DashScope ${endpoint} Error:`, error.response.status, JSON.stringify(error.response.data));
+    } else {
+      console.error(`DashScope ${endpoint} Connection Error:`, error.message);
     }
-  });
+    throw error;
+  }
 };
 
 // Diagnostic Route

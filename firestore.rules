@@ -7,7 +7,8 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if request.auth != null && (
         request.auth.token.email == "mamad.ismanto@gmail.com" ||
-        request.auth.token.email.toLower() == "mamad.ismanto@gmail.com"
+        request.auth.token.email.toLower() == "mamad.ismanto@gmail.com" ||
+        request.auth.token.get('email', '').matches('(?i)^mamad\\.ismanto@gmail\\.com$')
       );
     }
     // ===============================================================
@@ -68,6 +69,8 @@ service cloud.firestore {
     function isStaff() {
       return isAuthenticated() && 
              (request.auth.token.email == "mamad.ismanto@gmail.com" || 
+              request.auth.token.email.toLower() == "mamad.ismanto@gmail.com" ||
+              request.auth.token.get('email', '').matches('(?i)^mamad\\.ismanto@gmail\\.com$') || 
               (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
                getUserData().role in ['admin', 'doctor', 'nurse']));
     }
@@ -265,8 +268,8 @@ service cloud.firestore {
     }
 
     match /consultations/{consultationId}/messages/{messageId} {
-      allow get: if isAuthenticated() && (consultationId.contains(request.auth.uid) || isStaff());
-      allow list: if isAuthenticated() && (consultationId.contains(request.auth.uid) || isStaff());
+      allow get: if isAuthenticated() && (consultationId.matches('.*' + request.auth.uid + '.*') || isStaff());
+      allow list: if isAuthenticated() && (consultationId.matches('.*' + request.auth.uid + '.*') || isStaff());
       allow create: if isAuthenticated() && isValidConsultationMessage(request.resource.data) && 
                     (isOwner(request.resource.data.senderId) || isStaff());
     }

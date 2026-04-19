@@ -42,6 +42,9 @@ const ConsultationPage = ({ profile }: { profile: UserProfile }) => {
       );
       return onSnapshot(q, (snapshot) => {
         setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ConsultationMessage)));
+      }, (error) => {
+        console.error("Consultation messages error:", error);
+        toast.error(t('errorLoadingChat'));
       });
     } else {
       setMessages([]);
