@@ -22,7 +22,7 @@ const callDashscope = async (endpoint: string, data: any) => {
   const key = getDashscopeKey();
   return axios.post(`https://dashscope.aliyuncs.com/api/v1${endpoint}`, data, {
     headers: {
-      'Authorization': `Bearer ${key}`,
+      'X-DashScope-ApiKey': key,
       'Content-Type': 'application/json'
     }
   });
