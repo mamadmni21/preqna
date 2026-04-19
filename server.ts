@@ -21,6 +21,7 @@ async function startServer() {
     let key = process.env.DASHSCOPE_API_KEY || process.env.VITE_DASHSCOPE_API_KEY || '';
     // Aggressive cleaning for Vercel/Cloud environments
     key = key.trim();
+    if (key === 'undefined' || key === 'null') return '';
     key = key.replace(/^["']|["']$/g, ''); // Remove outer quotes
     key = key.replace(/^Bearer\s+/i, ''); // Remove accidental Bearer prefix
     return key.trim();
@@ -29,8 +30,10 @@ async function startServer() {
   // Helper to make dashscope calls
   const callDashscope = async (endpoint: string, data: any) => {
     const key = getDashscopeKey();
+    // Send BOTH header styles to bypass potential proxy stripping
     return axios.post(`https://dashscope.aliyuncs.com/api/v1${endpoint}`, data, {
       headers: {
+        'Authorization': `Bearer ${key}`,
         'X-DashScope-ApiKey': key,
         'Content-Type': 'application/json'
       }
