@@ -63,11 +63,30 @@ const ProfilePage = ({ profile, setProfile }: { profile: UserProfile, setProfile
     e.preventDefault();
     setLoading(true);
     try {
-      const updatedProfile = { ...profile, ...formData };
+      // Helper function to recursively remove undefined values
+      const removeUndefined = (obj: any): any => {
+        if (Array.isArray(obj)) {
+          return obj.map(v => (v === undefined ? null : removeUndefined(v)));
+        } else if (obj !== null && typeof obj === 'object') {
+          return Object.fromEntries(
+            Object.entries(obj)
+              .filter(([_, v]) => v !== undefined)
+              .map(([k, v]) => [k, removeUndefined(v)])
+          );
+        }
+        return obj;
+      };
+
+      const updatedProfile = removeUndefined({ 
+        ...profile, 
+        ...formData 
+      });
+
       await setDoc(doc(db, 'users', profile.uid), updatedProfile, { merge: true });
       setProfile(updatedProfile);
       toast.success('Profile updated');
     } catch (error: any) {
+      console.error("Firestore Update Error:", error);
       toast.error(error.message);
     } finally {
       setLoading(false);

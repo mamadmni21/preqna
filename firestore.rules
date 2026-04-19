@@ -123,7 +123,11 @@ service cloud.firestore {
     // ===============================================================
 
     match /users/{userId} {
-      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin() || isNurse() || (isDoctor() && resource.data.primaryDoctorId == request.auth.uid));
+      allow read: if isAuthenticated() && (
+        isOwner(userId) || 
+        isStaff() || 
+        resource.data.role == 'doctor'
+      );
       allow create: if isAuthenticated() && isValidUser(request.resource.data) && 
                     (isOwner(userId) || isAdmin());
       allow update: if isAuthenticated() && isValidUser(request.resource.data) && 
@@ -133,7 +137,10 @@ service cloud.firestore {
     }
 
     match /appointments/{appointmentId} {
-      allow read: if isAuthenticated() && (isOwner(resource.data.patientId) || isAdmin() || isNurse() || (isDoctor() && (resource.data.doctorId == request.auth.uid || get(/databases/$(database)/documents/users/$(resource.data.patientId)).data.primaryDoctorId == request.auth.uid)));
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.patientId) || 
+        isStaff()
+      );
       allow create: if isAuthenticated() && isValidAppointment(request.resource.data) && 
                     (isOwner(request.resource.data.patientId) || isStaff());
       allow update: if isAuthenticated() && isValidAppointment(request.resource.data) && 
@@ -142,7 +149,10 @@ service cloud.firestore {
     }
 
     match /nutrition/{intakeId} {
-      allow read: if isAuthenticated() && (isOwner(resource.data.patientId) || isAdmin() || (isDoctor() && get(/databases/$(database)/documents/users/$(resource.data.patientId)).data.primaryDoctorId == request.auth.uid));
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.patientId) || 
+        isStaff()
+      );
       allow create: if isAuthenticated() && isValidNutrition(request.resource.data) && 
                     isOwner(request.resource.data.patientId);
       allow update: if isAuthenticated() && isValidNutrition(request.resource.data) && 
@@ -151,7 +161,10 @@ service cloud.firestore {
     }
 
     match /clinicalNotes/{noteId} {
-      allow read: if isAuthenticated() && (isOwner(resource.data.patientId) || isAdmin() || isNurse() || (isDoctor() && (resource.data.doctorId == request.auth.uid || get(/databases/$(database)/documents/users/$(resource.data.patientId)).data.primaryDoctorId == request.auth.uid)));
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.patientId) || 
+        isStaff()
+      );
       allow create: if isAuthenticated() && isValidClinicalNote(request.resource.data) && 
                     (isDoctor() || isAdmin());
       allow update: if isAuthenticated() && isValidClinicalNote(request.resource.data) && 
@@ -160,7 +173,10 @@ service cloud.firestore {
     }
 
     match /pregnancySessions/{sessionId} {
-      allow read: if isAuthenticated() && (isOwner(resource.data.patientId) || isAdmin() || isNurse() || (isDoctor() && get(/databases/$(database)/documents/users/$(resource.data.patientId)).data.primaryDoctorId == request.auth.uid));
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.patientId) || 
+        isStaff()
+      );
       allow create: if isAuthenticated() && isValidPregnancySession(request.resource.data) && 
                     (isOwner(request.resource.data.patientId) || isStaff());
       allow update: if isAuthenticated() && isValidPregnancySession(request.resource.data) && 
@@ -169,7 +185,10 @@ service cloud.firestore {
     }
 
     match /pregnancyRecords/{recordId} {
-      allow read: if isAuthenticated() && (isOwner(resource.data.patientId) || isAdmin() || isNurse() || (isDoctor() && get(/databases/$(database)/documents/users/$(resource.data.patientId)).data.primaryDoctorId == request.auth.uid));
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.patientId) || 
+        isStaff()
+      );
       allow create: if isAuthenticated() && isValidPregnancyRecord(request.resource.data) && 
                     isStaff();
       allow update: if isAuthenticated() && isValidPregnancyRecord(request.resource.data) && 
@@ -178,7 +197,10 @@ service cloud.firestore {
     }
 
     match /previousPregnancies/{pregnancyId} {
-      allow read: if isAuthenticated() && (isOwner(resource.data.patientId) || isAdmin() || isNurse() || (isDoctor() && get(/databases/$(database)/documents/users/$(resource.data.patientId)).data.primaryDoctorId == request.auth.uid));
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.patientId) || 
+        isStaff()
+      );
       allow create: if isAuthenticated() && isValidPreviousPregnancy(request.resource.data) && 
                     (isOwner(request.resource.data.patientId) || isStaff());
       allow update: if isAuthenticated() && isValidPreviousPregnancy(request.resource.data) && 
@@ -187,7 +209,10 @@ service cloud.firestore {
     }
 
     match /previousPregnancyRecords/{recordId} {
-      allow read: if isAuthenticated() && (isOwner(resource.data.patientId) || isAdmin() || isNurse() || (isDoctor() && get(/databases/$(database)/documents/users/$(resource.data.patientId)).data.primaryDoctorId == request.auth.uid));
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.patientId) || 
+        isStaff()
+      );
       allow create: if isAuthenticated() && isValidPreviousPregnancyRecord(request.resource.data) && 
                     (isOwner(request.resource.data.patientId) || isStaff());
       allow update: if isAuthenticated() && isValidPreviousPregnancyRecord(request.resource.data) && 
