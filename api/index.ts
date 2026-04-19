@@ -13,9 +13,6 @@ const getDashscopeKey = () => {
   return key.trim();
 };
 
-const app = express();
-app.use(express.json({ limit: '50mb' }));
-
 // Helper to make dashscope calls
 const callDashscope = async (endpoint: string, data: any) => {
   const key = getDashscopeKey();
@@ -26,6 +23,18 @@ const callDashscope = async (endpoint: string, data: any) => {
     }
   });
 };
+
+// Diagnostic Route
+app.get('/api/diag', (req, res) => {
+  const key = getDashscopeKey();
+  res.json({
+    envKeys: Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('KEY')),
+    hasKey: !!key,
+    keyLength: key.length,
+    prefix: key.substring(0, 4) || 'none',
+    searched: ['DASHSCOPE_API_KEY', 'VITE_DASHSCOPE_API_KEY']
+  });
+});
 
 // Qwen Proxy Routes
 app.post('/api/qwen/transcribe', async (req, res) => {
