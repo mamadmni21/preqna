@@ -23,24 +23,17 @@ async function startServer() {
 
     let key = envKey.trim();
     
-    // Strategy: Remove quotes that might be preserved in some shells
+    // Strategy: Remove quotes
     key = key.replace(/^["']|["']$/g, '');
 
-    // Strategy: Find the actual key starting with 'sk-' and discard everything before it
+    // Strategy: Identify the core key if embedded in shell commands
     const skMatch = key.match(/sk-[a-zA-Z0-9\-\_\.]+/i);
     if (skMatch) {
       key = skMatch[0];
     }
 
-    // Strategy: Take only the first continuous string (strips trailing comments/spaces)
-    key = key.split(/\s/)[0];
-
-    // Maximum sanitization: Keep only standard key characters
-    key = key.replace(/[^a-zA-Z0-9_\-\.]/g, ''); 
-    
-    if (key) {
-      console.log(`Initial Sanitization Complete. Key starts with 'sk-', contains ${key.length} chars.`);
-    }
+    // Final trim and safety check
+    key = key.trim();
     
     return key;
   };
@@ -52,15 +45,16 @@ async function startServer() {
     if (!key) {
       console.error(`DashScope ${endpoint}: KEY IS EMPTY`);
     } else {
-      // Log masked signature for debugging without exposing secret
       const signature = `${key.substring(0, 5)}...${key.substring(key.length - 3)}`;
-      console.log(`DashScope ${endpoint}: Using key ${signature} (len: ${key.length})`);
+      console.log(`DashScope ${endpoint}: Attempting Multi-Header Auth with key ${signature}`);
     }
 
     try {
       const response = await axios.post(`https://dashscope.aliyuncs.com/api/v1${endpoint}`, data, {
         headers: {
           'Authorization': `Bearer ${key}`,
+          'X-DashScope-ApiKey': key,      // Alternative for multimodal
+          'dashscope-api-key': key,       // Common mapping for Alibaba SDKs
           'Content-Type': 'application/json'
         }
       });
@@ -73,7 +67,7 @@ async function startServer() {
     }
   };
 
-  // Diagnostic Route with Live Health Check
+  // Diagnostic Route with Deep Character Analysis
   app.get('/api/diag', async (req, res) => {
     const key = getDashscopeKey();
     let liveVerified = false;
@@ -92,16 +86,19 @@ async function startServer() {
       }
     }
 
+    // Generate character metadata for remote debugging
+    const charCodes = key.substring(0, 8).split('').map(c => c.charCodeAt(0));
+
     res.json({
-      buildVersion: '1.0.4 - Live Health Check',
-      envKeys: Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('KEY')),
+      buildVersion: '1.0.5 - Triple-Header Auth',
       hasKey: !!key,
       keyLength: key.length,
-      hasSpecialChars: /[\-_\.]/.test(key),
+      prefix: key.substring(0, 5) || 'none',
+      suffix: key.length > 5 ? `...${key.substring(key.length - 3)}` : 'none',
+      prefixCharCodes: charCodes,
       liveStatus: liveVerified ? 'VERIFIED' : 'FAILED',
       liveError,
-      headerDebug: key ? 'Authorization: Bearer + Signature Mask' : 'MISSING',
-      prefix: key.substring(0, 4) || 'none',
+      activeHeaders: ['Authorization', 'X-DashScope-ApiKey', 'dashscope-api-key'],
       searched: ['DASHSCOPE_API_KEY', 'VITE_DASHSCOPE_API_KEY']
     });
   });
