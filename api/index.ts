@@ -10,37 +10,34 @@ app.use(express.json({ limit: '50mb' }));
 // Improved key discovery logic
 const getDashscopeKey = () => {
   const key = process.env.DASHSCOPE_API_KEY || process.env.VITE_DASHSCOPE_API_KEY || '';
-  return key.trim().replace(/^Bearer\s+/i, '').replace(/^["']|["']$/g, '');
+  return key.trim();
 };
 
-const DASHSCOPE_API_KEY = getDashscopeKey();
+const app = express();
+app.use(express.json({ limit: '50mb' }));
 
-// Log key info for debugging (Safe logging)
-if (DASHSCOPE_API_KEY) {
-  console.log(`DASHSCOPE_API_KEY loaded successfully. Length: ${DASHSCOPE_API_KEY.length}, Starts with: ${DASHSCOPE_API_KEY.substring(0, 4)}...`);
-} else {
-  console.warn('DASHSCOPE_API_KEY is missing. Searched: [DASHSCOPE_API_KEY, VITE_DASHSCOPE_API_KEY]');
-}
-
-const dashscopeClient = axios.create({
-  baseURL: 'https://dashscope.aliyuncs.com/api/v1',
-  headers: {
-    'Authorization': `Bearer ${DASHSCOPE_API_KEY}`,
-    'Content-Type': 'application/json'
-  }
-});
+// Helper to make dashscope calls
+const callDashscope = async (endpoint: string, data: any) => {
+  const key = getDashscopeKey();
+  return axios.post(`https://dashscope.aliyuncs.com/api/v1${endpoint}`, data, {
+    headers: {
+      'Authorization': `Bearer ${key}`,
+      'Content-Type': 'application/json'
+    }
+  });
+};
 
 // Qwen Proxy Routes
 app.post('/api/qwen/transcribe', async (req, res) => {
   const { base64Audio, mimeType, prompt } = req.body;
   
-  if (!DASHSCOPE_API_KEY) {
+  if (!getDashscopeKey()) {
     console.error('DASHSCOPE_API_KEY is missing');
     return res.status(500).json({ error: 'AI Services are not configured. Please set DASHSCOPE_API_KEY in the environment.' });
   }
 
   try {
-    const response = await dashscopeClient.post('/services/aigc/multimodal-generation/generation', {
+    const response = await callDashscope('/services/aigc/multimodal-generation/generation', {
       model: 'qwen-audio-turbo',
       input: {
         messages: [
@@ -72,12 +69,12 @@ app.post('/api/qwen/transcribe', async (req, res) => {
 app.post('/api/qwen/extract', async (req, res) => {
   const { text, prompt } = req.body;
 
-  if (!DASHSCOPE_API_KEY) {
+  if (!getDashscopeKey()) {
     return res.status(500).json({ error: 'AI Services are not configured.' });
   }
 
   try {
-    const response = await dashscopeClient.post('/services/aigc/text-generation/generation', {
+    const response = await callDashscope('/services/aigc/text-generation/generation', {
       model: 'qwen-max',
       input: {
         messages: [
