@@ -55,7 +55,6 @@ const callDashscope = async (endpoint: string, data: any) => {
     const response = await axios.post(`https://dashscope.aliyuncs.com/api/v1${endpoint}`, data, {
       headers: {
         'Authorization': `Bearer ${key}`,
-        'X-DashScope-ApiKey': key, // Official header for many Alibaba services
         'Content-Type': 'application/json'
       }
     });
@@ -68,16 +67,36 @@ const callDashscope = async (endpoint: string, data: any) => {
   }
 };
 
-// Diagnostic Route
-app.get('/api/diag', (req, res) => {
+// Diagnostic Route with Live Health Check
+app.get('/api/diag', async (req, res) => {
   const key = getDashscopeKey();
+  let liveVerified = false;
+  let liveError = null;
+
+  if (key) {
+    try {
+      // Test the key with a minimal text generation call (low cost/latency)
+      await callDashscope('/services/aigc/text-generation/generation', {
+        model: 'qwen-max',
+        input: { messages: [{ role: 'user', content: 'hi' }] },
+        parameters: { max_tokens: 1 }
+      });
+      liveVerified = true;
+    } catch (error: any) {
+      liveError = error.response?.data?.message || error.message;
+    }
+  }
+
   res.json({
+    buildVersion: '1.0.4 - Live Health Check',
     envKeys: Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('KEY')),
     hasKey: !!key,
     keyLength: key.length,
     hasSpecialChars: /[\-_\.]/.test(key),
+    liveStatus: liveVerified ? 'VERIFIED' : 'FAILED',
+    liveError,
+    headerDebug: key ? 'Authorization: Bearer + Signature Mask' : 'MISSING',
     prefix: key.substring(0, 4) || 'none',
-    suffix: key.length > 4 ? `...${key.substring(key.length - 4)}` : 'none',
     searched: ['DASHSCOPE_API_KEY', 'VITE_DASHSCOPE_API_KEY']
   });
 });
