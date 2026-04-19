@@ -16,7 +16,14 @@ async function startServer() {
 
   app.use(express.json({ limit: '50mb' }));
 
-  const DASHSCOPE_API_KEY = (process.env.DASHSCOPE_API_KEY || '').trim().replace(/^Bearer\s+/i, '');
+  const DASHSCOPE_API_KEY = (process.env.DASHSCOPE_API_KEY || '').trim().replace(/^Bearer\s+/i, '').replace(/^["']|["']$/g, '');
+
+  // Log key info for debugging (Safe logging)
+  if (DASHSCOPE_API_KEY) {
+    console.log(`DASHSCOPE_API_KEY loaded. Length: ${DASHSCOPE_API_KEY.length}, Starts with: ${DASHSCOPE_API_KEY.substring(0, 4)}...`);
+  } else {
+    console.warn('DASHSCOPE_API_KEY is currently empty in environment.');
+  }
 
   const dashscopeClient = axios.create({
     baseURL: 'https://dashscope.aliyuncs.com/api/v1',

