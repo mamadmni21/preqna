@@ -57,7 +57,10 @@ service cloud.firestore {
     }
 
     function isStaff() {
-      return isAdmin() || isDoctor() || isNurse();
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             (getUserData().role in ['admin', 'doctor', 'nurse'] ||
+              (request.auth.token.email == "mamad.ismanto@gmail.com" && request.auth.token.email_verified == true));
     }
 
     // Validation Helpers
@@ -123,10 +126,14 @@ service cloud.firestore {
     // ===============================================================
 
     match /users/{userId} {
-      allow read: if isAuthenticated() && (
+      allow get: if isAuthenticated() && (
         isOwner(userId) || 
         isStaff() || 
-        resource.data.role == 'doctor'
+        (resource != null && resource.data.role == 'doctor')
+      );
+      allow list: if isAuthenticated() && (
+        isStaff() ||
+        (resource != null && resource.data.role == 'doctor')
       );
       allow create: if isAuthenticated() && isValidUser(request.resource.data) && 
                     (isOwner(userId) || isAdmin());
@@ -137,9 +144,13 @@ service cloud.firestore {
     }
 
     match /appointments/{appointmentId} {
-      allow read: if isAuthenticated() && (
+      allow get: if isAuthenticated() && (
         isOwner(resource.data.patientId) || 
         isStaff()
+      );
+      allow list: if isAuthenticated() && (
+        isStaff() ||
+        resource.data.patientId == request.auth.uid
       );
       allow create: if isAuthenticated() && isValidAppointment(request.resource.data) && 
                     (isOwner(request.resource.data.patientId) || isStaff());
@@ -149,9 +160,13 @@ service cloud.firestore {
     }
 
     match /nutrition/{intakeId} {
-      allow read: if isAuthenticated() && (
+      allow get: if isAuthenticated() && (
         isOwner(resource.data.patientId) || 
         isStaff()
+      );
+      allow list: if isAuthenticated() && (
+        isStaff() ||
+        resource.data.patientId == request.auth.uid
       );
       allow create: if isAuthenticated() && isValidNutrition(request.resource.data) && 
                     isOwner(request.resource.data.patientId);
@@ -161,9 +176,13 @@ service cloud.firestore {
     }
 
     match /clinicalNotes/{noteId} {
-      allow read: if isAuthenticated() && (
+      allow get: if isAuthenticated() && (
         isOwner(resource.data.patientId) || 
         isStaff()
+      );
+      allow list: if isAuthenticated() && (
+        isStaff() ||
+        resource.data.patientId == request.auth.uid
       );
       allow create: if isAuthenticated() && isValidClinicalNote(request.resource.data) && 
                     (isDoctor() || isAdmin());
@@ -173,9 +192,13 @@ service cloud.firestore {
     }
 
     match /pregnancySessions/{sessionId} {
-      allow read: if isAuthenticated() && (
+      allow get: if isAuthenticated() && (
         isOwner(resource.data.patientId) || 
         isStaff()
+      );
+      allow list: if isAuthenticated() && (
+        isStaff() ||
+        resource.data.patientId == request.auth.uid
       );
       allow create: if isAuthenticated() && isValidPregnancySession(request.resource.data) && 
                     (isOwner(request.resource.data.patientId) || isStaff());
@@ -185,9 +208,13 @@ service cloud.firestore {
     }
 
     match /pregnancyRecords/{recordId} {
-      allow read: if isAuthenticated() && (
+      allow get: if isAuthenticated() && (
         isOwner(resource.data.patientId) || 
         isStaff()
+      );
+      allow list: if isAuthenticated() && (
+        isStaff() ||
+        resource.data.patientId == request.auth.uid
       );
       allow create: if isAuthenticated() && isValidPregnancyRecord(request.resource.data) && 
                     isStaff();
@@ -197,9 +224,13 @@ service cloud.firestore {
     }
 
     match /previousPregnancies/{pregnancyId} {
-      allow read: if isAuthenticated() && (
+      allow get: if isAuthenticated() && (
         isOwner(resource.data.patientId) || 
         isStaff()
+      );
+      allow list: if isAuthenticated() && (
+        isStaff() ||
+        resource.data.patientId == request.auth.uid
       );
       allow create: if isAuthenticated() && isValidPreviousPregnancy(request.resource.data) && 
                     (isOwner(request.resource.data.patientId) || isStaff());
@@ -209,9 +240,13 @@ service cloud.firestore {
     }
 
     match /previousPregnancyRecords/{recordId} {
-      allow read: if isAuthenticated() && (
+      allow get: if isAuthenticated() && (
         isOwner(resource.data.patientId) || 
         isStaff()
+      );
+      allow list: if isAuthenticated() && (
+        isStaff() ||
+        resource.data.patientId == request.auth.uid
       );
       allow create: if isAuthenticated() && isValidPreviousPregnancyRecord(request.resource.data) && 
                     (isOwner(request.resource.data.patientId) || isStaff());
@@ -221,9 +256,10 @@ service cloud.firestore {
     }
 
     match /consultations/{consultationId}/messages/{messageId} {
-      allow read: if isAuthenticated() && (isOwner(resource.data.senderId) || isOwner(resource.data.receiverId));
+      allow get: if isAuthenticated() && (consultationId.contains(request.auth.uid) || isStaff());
+      allow list: if isAuthenticated() && (consultationId.contains(request.auth.uid) || isStaff());
       allow create: if isAuthenticated() && isValidConsultationMessage(request.resource.data) && 
-                    isOwner(request.resource.data.senderId);
+                    (isOwner(request.resource.data.senderId) || isStaff());
     }
   }
 }

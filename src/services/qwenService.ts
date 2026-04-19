@@ -8,8 +8,9 @@ export const transcribeSimpleAudio = async (base64Audio: string, mimeType: strin
       prompt: "Transcribe this audio recording accurately. Support English, French, Arabic, Vietnamese, Indonesian, and Malay. Return only the transcription text."
     });
     return response.data.text;
-  } catch (error) {
-    console.error("Error transcribing with Qwen proxy:", error);
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.error || error.message;
+    console.error("Error transcribing with Qwen proxy:", errorMsg);
     return null;
   }
 };
@@ -42,8 +43,9 @@ export const transcribeClinicalAudio = async (base64Audio: string, mimeType: str
     
     const jsonText = response.data.text.replace(/```json|```/g, "").trim();
     return JSON.parse(jsonText);
-  } catch (error) {
-    console.error("Error clinical transcription with Qwen proxy:", error);
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.error || error.message;
+    console.error("Error clinical transcription with Qwen proxy:", errorMsg);
     return null;
   }
 };
@@ -72,8 +74,9 @@ export const extractClinicalInfo = async (text: string) => {
       `
     });
     return response.data;
-  } catch (error) {
-    console.error("Error extracting clinical info with Qwen proxy:", error);
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.error || error.message;
+    console.error("Error extracting clinical info with Qwen proxy:", errorMsg);
     return null;
   }
 };
