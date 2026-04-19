@@ -7,17 +7,19 @@ dotenv.config();
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 
-// Diagnostic: Log all available environment keys (not values)
-console.log('Available environment variables:', Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('KEY')));
-console.log('Checking specifically for DASHSCOPE_API_KEY:', !!process.env.DASHSCOPE_API_KEY);
+// Improved key discovery logic
+const getDashscopeKey = () => {
+  const key = process.env.DASHSCOPE_API_KEY || process.env.VITE_DASHSCOPE_API_KEY || '';
+  return key.trim().replace(/^Bearer\s+/i, '').replace(/^["']|["']$/g, '');
+};
 
-const DASHSCOPE_API_KEY = (process.env.DASHSCOPE_API_KEY || '').trim().replace(/^Bearer\s+/i, '').replace(/^["']|["']$/g, '');
+const DASHSCOPE_API_KEY = getDashscopeKey();
 
 // Log key info for debugging (Safe logging)
 if (DASHSCOPE_API_KEY) {
-  console.log(`DASHSCOPE_API_KEY loaded. Length: ${DASHSCOPE_API_KEY.length}, Starts with: ${DASHSCOPE_API_KEY.substring(0, 4)}...`);
+  console.log(`DASHSCOPE_API_KEY loaded successfully. Length: ${DASHSCOPE_API_KEY.length}, Starts with: ${DASHSCOPE_API_KEY.substring(0, 4)}...`);
 } else {
-  console.warn('DASHSCOPE_API_KEY is currently empty in environment.');
+  console.warn('DASHSCOPE_API_KEY is missing. Searched: [DASHSCOPE_API_KEY, VITE_DASHSCOPE_API_KEY]');
 }
 
 const dashscopeClient = axios.create({
