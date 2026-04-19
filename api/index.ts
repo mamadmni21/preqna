@@ -7,6 +7,10 @@ dotenv.config();
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 
+// Diagnostic: Log all available environment keys (not values)
+console.log('Available environment variables:', Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('KEY')));
+console.log('Checking specifically for DASHSCOPE_API_KEY:', !!process.env.DASHSCOPE_API_KEY);
+
 const DASHSCOPE_API_KEY = (process.env.DASHSCOPE_API_KEY || '').trim().replace(/^Bearer\s+/i, '').replace(/^["']|["']$/g, '');
 
 // Log key info for debugging (Safe logging)

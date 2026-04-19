@@ -16,6 +16,10 @@ async function startServer() {
 
   app.use(express.json({ limit: '50mb' }));
 
+  // Diagnostic: Log all available environment keys (not values)
+  console.log('Available environment variables:', Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('KEY')));
+  console.log('Checking specifically for DASHSCOPE_API_KEY:', !!process.env.DASHSCOPE_API_KEY);
+
   const DASHSCOPE_API_KEY = (process.env.DASHSCOPE_API_KEY || '').trim().replace(/^Bearer\s+/i, '').replace(/^["']|["']$/g, '');
 
   // Log key info for debugging (Safe logging)
@@ -31,6 +35,16 @@ async function startServer() {
       'Authorization': `Bearer ${DASHSCOPE_API_KEY}`,
       'Content-Type': 'application/json'
     }
+  });
+
+  // Diagnostic Route
+  app.get('/api/diag', (req, res) => {
+    res.json({
+      envKeys: Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('KEY')),
+      hasKey: !!process.env.DASHSCOPE_API_KEY,
+      keyLength: process.env.DASHSCOPE_API_KEY?.length || 0,
+      prefix: process.env.DASHSCOPE_API_KEY?.substring(0, 4) || 'none'
+    });
   });
 
   // Qwen Proxy Routes
