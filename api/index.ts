@@ -30,67 +30,93 @@ const getDashscopeKey = () => {
   return key;
 };
 
-// Helper to make dashscope calls
+// Helper to make dashscope calls with region fallback
 const callDashscope = async (endpoint: string, data: any) => {
   const key = getDashscopeKey();
+  const domains = [
+    'https://dashscope.aliyuncs.com/api/v1',
+    'https://dashscope-intl.aliyuncs.com/api/v1' // Fallback for International accounts
+  ];
   
   if (!key) {
     console.error(`DashScope ${endpoint}: KEY IS EMPTY`);
-  } else {
-    const signature = `${key.substring(0, 5)}...${key.substring(key.length - 3)}`;
-    console.log(`DashScope ${endpoint}: Attempting Multi-Header Auth with key ${signature}`);
+    throw new Error('API Key is missing');
   }
 
-  try {
-    const response = await axios.post(`https://dashscope.aliyuncs.com/api/v1${endpoint}`, data, {
-      headers: {
-        'Authorization': `Bearer ${key}`,
-        'X-DashScope-ApiKey': key,      // Alternative for multimodal
-        'dashscope-api-key': key,       // Common mapping for Alibaba SDKs
-        'Content-Type': 'application/json'
-      }
-    });
-    return response;
-  } catch (error: any) {
-    const status = error.response?.status || 'Network Error';
-    const errorData = error.response?.data ? JSON.stringify(error.response.data) : error.message;
-    console.error(`DashScope ${endpoint} [${status}]:`, errorData);
-    throw error;
-  }
-};
+  let lastError: any = null;
 
-// Diagnostic Route with Deep Character Analysis
-app.get('/api/diag', async (req, res) => {
-  const key = getDashscopeKey();
-  let liveVerified = false;
-  let liveError = null;
-
-  if (key) {
+  for (const baseUrl of domains) {
     try {
-      await callDashscope('/services/aigc/text-generation/generation', {
-        model: 'qwen-max',
-        input: { messages: [{ role: 'user', content: 'hi' }] },
-        parameters: { max_tokens: 1 }
+      console.log(`DashScope ${endpoint}: Attempting request to ${baseUrl}...`);
+      const response = await axios.post(`${baseUrl}${endpoint}`, data, {
+        headers: {
+          'Authorization': `Bearer ${key}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 15000 // 15s timeout
       });
-      liveVerified = true;
+      return response;
     } catch (error: any) {
-      liveError = error.response?.data?.message || error.message;
+      lastError = error;
+      const status = error.response?.status;
+      const message = error.response?.data?.message || '';
+      
+      console.error(`DashScope ${baseUrl}${endpoint} [${status || 'Error'}]: ${message || error.message}`);
+      
+      // If it's a 401, try the next domain. Otherwise, throw.
+      if (status !== 401) {
+        throw error;
+      }
     }
   }
 
-  // Generate character metadata for remote debugging
-  const charCodes = key.substring(0, 8).split('').map(c => c.charCodeAt(0));
+  throw lastError;
+};
+
+// Diagnostic Route with Region Check & Deep Character Analysis
+app.get('/api/diag', async (req, res) => {
+  const key = getDashscopeKey();
+  let liveVerified = false;
+  let verifiedRegion = null;
+  let liveError = null;
+
+  if (key) {
+    const domains = ['Mainland', 'International'];
+    const urls = ['https://dashscope.aliyuncs.com/api/v1', 'https://dashscope-intl.aliyuncs.com/api/v1'];
+    
+    for (let i = 0; i < urls.length; i++) {
+      try {
+        await axios.post(`${urls[i]}/services/aigc/text-generation/generation`, {
+          model: 'qwen-max',
+          input: { messages: [{ role: 'user', content: 'hi' }] },
+          parameters: { max_tokens: 1 }
+        }, {
+          headers: { 'Authorization': `Bearer ${key}` }
+        });
+        liveVerified = true;
+        verifiedRegion = domains[i];
+        break;
+      } catch (error: any) {
+        liveError = error.response?.data?.message || error.message;
+      }
+    }
+  }
+
+  // Deep inspection
+  const prefixCodes = key.substring(0, 5).split('').map(c => c.charCodeAt(0));
+  const suffixCodes = key.length > 5 ? key.substring(key.length - 5).split('').map(c => c.charCodeAt(0)) : [];
 
   res.json({
-    buildVersion: '1.0.5 - Triple-Header Auth',
+    buildVersion: '1.0.6 - Regional Fallback',
     hasKey: !!key,
     keyLength: key.length,
     prefix: key.substring(0, 5) || 'none',
-    suffix: key.length > 5 ? `...${key.substring(key.length - 3)}` : 'none',
-    prefixCharCodes: charCodes,
+    prefixCodes,
+    suffixCodes,
     liveStatus: liveVerified ? 'VERIFIED' : 'FAILED',
-    liveError,
-    activeHeaders: ['Authorization', 'X-DashScope-ApiKey', 'dashscope-api-key'],
+    verifiedRegion,
+    lastLiveError: liveError,
+    activeStrategy: 'Dual-Region (Mainland + International)',
     searched: ['DASHSCOPE_API_KEY', 'VITE_DASHSCOPE_API_KEY']
   });
 });
