@@ -18,7 +18,11 @@ async function startServer() {
 
   // Improved key discovery logic
   const getDashscopeKey = () => {
-    const key = process.env.DASHSCOPE_API_KEY || process.env.VITE_DASHSCOPE_API_KEY || '';
+    let key = process.env.DASHSCOPE_API_KEY || process.env.VITE_DASHSCOPE_API_KEY || '';
+    // Aggressive cleaning for Vercel/Cloud environments
+    key = key.trim();
+    key = key.replace(/^["']|["']$/g, ''); // Remove outer quotes
+    key = key.replace(/^Bearer\s+/i, ''); // Remove accidental Bearer prefix
     return key.trim();
   };
 
@@ -41,6 +45,7 @@ async function startServer() {
       hasKey: !!key,
       keyLength: key.length,
       prefix: key.substring(0, 4) || 'none',
+      suffix: key.length > 4 ? `...${key.substring(key.length - 4)}` : 'none',
       searched: ['DASHSCOPE_API_KEY', 'VITE_DASHSCOPE_API_KEY']
     });
   });
