@@ -180,13 +180,20 @@ const BookingPage = ({ profile }: { profile: UserProfile }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Time</label>
-              <input 
-                type="time" 
+              <select 
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-brand-primary"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-brand-primary bg-white"
                 required
-              />
+              >
+                <option value="">Choose time...</option>
+                {[9, 10, 11, 12, 13, 14, 15, 16, 17].map(hour => (
+                  <React.Fragment key={hour}>
+                    <option value={`${hour.toString().padStart(2, '0')}:00`}>{hour.toString().padStart(2, '0')}:00</option>
+                    <option value={`${hour.toString().padStart(2, '0')}:30`}>{hour.toString().padStart(2, '0')}:30</option>
+                  </React.Fragment>
+                ))}
+              </select>
             </div>
           </div>
           <div>
