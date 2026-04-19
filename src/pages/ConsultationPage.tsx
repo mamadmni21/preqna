@@ -95,11 +95,11 @@ const ConsultationPage = ({ profile }: { profile: UserProfile }) => {
           reader.readAsDataURL(audioBlob);
           reader.onloadend = async () => {
             const base64 = (reader.result as string).split(',')[1];
-            const transcription = await transcribeSimpleAudio(base64, 'audio/webm');
-            if (transcription) {
-              sendMessage(transcription, 'audio');
+            const result = await transcribeSimpleAudio(base64, 'audio/webm');
+            if (result.text) {
+              sendMessage(result.text, 'audio');
             } else {
-              toast.error(t('errorTranscription'));
+              toast.error(result.error || t('errorTranscription'));
             }
           };
         } catch (error) {

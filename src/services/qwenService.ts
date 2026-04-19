@@ -7,11 +7,11 @@ export const transcribeSimpleAudio = async (base64Audio: string, mimeType: strin
       mimeType,
       prompt: "Transcribe this audio recording accurately. Support English, French, Arabic, Vietnamese, Indonesian, and Malay. Return only the transcription text."
     });
-    return response.data.text;
+    return { text: response.data.text, error: null };
   } catch (error: any) {
     const errorMsg = error.response?.data?.error || error.message;
     console.error("Error transcribing with Qwen proxy:", errorMsg);
-    return null;
+    return { text: null, error: errorMsg };
   }
 };
 

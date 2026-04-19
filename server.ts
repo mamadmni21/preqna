@@ -16,15 +16,33 @@ async function startServer() {
 
   app.use(express.json({ limit: '50mb' }));
 
-  // Improved key discovery logic
+  // Robust key discovery logic with 'Seek-and-Sanitize'
   const getDashscopeKey = () => {
-    let key = process.env.DASHSCOPE_API_KEY || process.env.VITE_DASHSCOPE_API_KEY || '';
-    // Maximum sanitization: Keep ONLY printable ASCII, remove quotes and prefixes
-    key = key.trim();
-    key = key.replace(/[^\x21-\x7E]/g, ''); // Remove all non-printable/whitespace-like ASCII
-    key = key.replace(/^["']|["']$/g, ''); // Remove outer quotes
-    key = key.replace(/^Bearer\s+/i, ''); // Remove accidental Bearer prefix
-    return key.trim();
+    const envKey = process.env.DASHSCOPE_API_KEY || process.env.VITE_DASHSCOPE_API_KEY || '';
+    if (!envKey || envKey === 'undefined' || envKey === 'null') return '';
+
+    let key = envKey.trim();
+    
+    // Strategy: Remove quotes that might be preserved in some shells
+    key = key.replace(/^["']|["']$/g, '');
+
+    // Strategy: Find the actual key starting with 'sk-' and discard everything before it
+    const skMatch = key.match(/sk-[a-zA-Z0-9\-\_\.]+/i);
+    if (skMatch) {
+      key = skMatch[0];
+    }
+
+    // Strategy: Take only the first continuous string (strips trailing comments/spaces)
+    key = key.split(/\s/)[0];
+
+    // Maximum sanitization: Keep only standard key characters
+    key = key.replace(/[^a-zA-Z0-9_\-\.]/g, ''); 
+    
+    if (key) {
+      console.log(`Initial Sanitization Complete. Key starts with 'sk-', contains ${key.length} chars.`);
+    }
+    
+    return key;
   };
 
   // Helper to make dashscope calls
@@ -34,7 +52,9 @@ async function startServer() {
     if (!key) {
       console.error(`DashScope ${endpoint}: KEY IS EMPTY`);
     } else {
-      console.log(`DashScope ${endpoint}: Key length=${key.length}, prefix=${key.substring(0, 4)}`);
+      // Log masked signature for debugging without exposing secret
+      const signature = `${key.substring(0, 5)}...${key.substring(key.length - 3)}`;
+      console.log(`DashScope ${endpoint}: Using key ${signature} (len: ${key.length})`);
     }
 
     try {
@@ -47,11 +67,9 @@ async function startServer() {
       });
       return response;
     } catch (error: any) {
-      if (error.response) {
-        console.error(`DashScope ${endpoint} Error (${error.response.status}):`, JSON.stringify(error.response.data));
-      } else {
-        console.error(`DashScope ${endpoint} Network Error:`, error.message);
-      }
+      const status = error.response?.status || 'Network Error';
+      const errorData = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+      console.error(`DashScope ${endpoint} [${status}]:`, errorData);
       throw error;
     }
   };
@@ -63,6 +81,7 @@ async function startServer() {
       envKeys: Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('KEY')),
       hasKey: !!key,
       keyLength: key.length,
+      hasSpecialChars: /[\-_\.]/.test(key),
       prefix: key.substring(0, 4) || 'none',
       suffix: key.length > 4 ? `...${key.substring(key.length - 4)}` : 'none',
       searched: ['DASHSCOPE_API_KEY', 'VITE_DASHSCOPE_API_KEY']
