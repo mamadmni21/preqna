@@ -1,8 +1,5 @@
 import express from 'express';
 import axios from 'axios';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -21,19 +18,27 @@ const getDashscopeKey = () => {
 // Helper to make dashscope calls
 const callDashscope = async (endpoint: string, data: any) => {
   const key = getDashscopeKey();
+  
+  if (!key) {
+    console.error(`DashScope ${endpoint}: KEY IS EMPTY`);
+  } else {
+    console.log(`DashScope ${endpoint}: Key length=${key.length}, prefix=${key.substring(0, 4)}`);
+  }
+
   try {
     const response = await axios.post(`https://dashscope.aliyuncs.com/api/v1${endpoint}`, data, {
       headers: {
-        'X-DashScope-ApiKey': key,
+        'Authorization': `Bearer ${key}`,
+        'X-DashScope-ApiKey': key, // Send both for maximum compatibility
         'Content-Type': 'application/json'
       }
     });
     return response;
   } catch (error: any) {
     if (error.response) {
-      console.error(`DashScope ${endpoint} Error:`, error.response.status, JSON.stringify(error.response.data));
+      console.error(`DashScope ${endpoint} Error (${error.response.status}):`, JSON.stringify(error.response.data));
     } else {
-      console.error(`DashScope ${endpoint} Connection Error:`, error.message);
+      console.error(`DashScope ${endpoint} Network Error:`, error.message);
     }
     throw error;
   }

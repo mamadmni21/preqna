@@ -53,26 +53,29 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isAuthenticated() && 
-        (getUserData().role == 'admin' || 
-         (request.auth.token.email == "mamad.ismanto@gmail.com" && request.auth.token.email_verified == true));
+      return isAuthenticated() && (
+        request.auth.token.email == "mamad.ismanto@gmail.com" ||
+        request.auth.token.email.toLower() == "mamad.ismanto@gmail.com" ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserData().get('role', 'patient') == 'admin')
+      );
     }
 
     function isDoctor() {
-      return hasRole('doctor');
+      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserData().get('role', 'patient') == 'doctor';
     }
 
     function isNurse() {
-      return hasRole('nurse');
+      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserData().get('role', 'patient') == 'nurse';
     }
 
     function isStaff() {
-      return isAuthenticated() && 
-             (request.auth.token.email == "mamad.ismanto@gmail.com" || 
-              request.auth.token.email.toLower() == "mamad.ismanto@gmail.com" ||
-              request.auth.token.get('email', '').matches('(?i)^mamad\\.ismanto@gmail\\.com$') || 
-              (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-               getUserData().role in ['admin', 'doctor', 'nurse']));
+      return isAuthenticated() && (
+        request.auth.token.email == "mamad.ismanto@gmail.com" || 
+        request.auth.token.email.toLower() == "mamad.ismanto@gmail.com" ||
+        request.auth.token.get('email', '').matches('(?i)^mamad\\.ismanto@gmail\\.com$') || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         getUserData().get('role', 'patient') in ['admin', 'doctor', 'nurse'])
+      );
     }
 
     // Validation Helpers
